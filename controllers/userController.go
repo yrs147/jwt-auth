@@ -65,7 +65,7 @@ func Signup() gin.HandlerFunc{
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 			return
 		}
-		defer cance()
+		defer cancel()
 		c.JSON(http.StatusOK, resultInsertionNumber)
 
 
