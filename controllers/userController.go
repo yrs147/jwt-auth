@@ -1,21 +1,23 @@
 package controllers
 
-import(
+import (
 	"context"
 	"fmt"
-	"log"
-	"strconv"
-	"net/http"
-	"time"
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
+	"jwt-auth/helpers"
 	helper "jwt-auth/helpers"
 	"jwt-auth/models"
-	"jwt-auth/helpers"
-	"golang.org/crypto/bcrypt"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/crypto/bcrypt"
+	"golang.org/x/crypto/bcrypt"
 )
 var userCollection *mongo.Collection = database.OpenCollection(database.Client,"user")
 var validate = validator.New()
@@ -23,7 +25,17 @@ var validate = validator.New()
 
 func HashPassword()
 
-func VerifyPassword()
+func VerifyPassword(userPassword string , providedPassword string)(bool, string){
+	err := bcrypt.CompareHashAndPassword([]byte(providedPassword),[]byte(userPassword))
+	check := true
+	msg := ""
+
+	if err != nil {
+		msg : fmt.Sprintf("email or password incorrect")
+		check false
+	}
+	return check , msg
+}
 
 func Signup() gin.HandlerFunc{
 	return func(c *gin.Context){
@@ -67,13 +79,31 @@ func Signup() gin.HandlerFunc{
 		}
 		defer cancel()
 		c.JSON(http.StatusOK, resultInsertionNumber)
-
-
-
 	}
 }
 
-func Login()
+func Login() gin.HandlerFunc{
+	return func(c *gin.Context){
+		var ctx , cancel = context.WithTimeout(context.Background())
+		var user models.User
+		var foundUser models.User
+
+		if err := c.BindJSON(&user); if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error"; err.Error()})
+			return
+		}
+
+		userCollection.FindOne(ctx, bson.M{"email":user.Email}).Decose(&foundUser)
+		defer cancel()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error":"email or password incorrect"})
+			return
+		}
+
+		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
+		defer cancel()
+	}
+}
 
 func GetUsers()
 
