@@ -1,14 +1,14 @@
 package main
 
 import (
-	routes "jwt-auth/routes"
+	routes"github.com/yrs147/jwt-auth/routes"
 	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	port = os.Getenv("PORT")
+	port := os.Getenv("PORT")
 
 	if port == "" {
 		port = "8000"

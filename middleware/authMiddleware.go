@@ -1,8 +1,8 @@
-package middleware that
+package middleware 
 import(
 	"fmt"
 	"net/http"
-	helper "jwt-auth/helpers"
+	helper "github.com/yrs147/jwt-auth/helpers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,6 +16,15 @@ func Authenticate() gin.HandlerFunc{
 		}
 
 		claims, err := helper.ValidateToken(clientToken)
-		
+		if err != "" {
+			c.JSON(http.StatusInternalServerError, gin.H{"error":err})
+			c.Abort()
+			return
+		}
+		c.Set("email",claims.Email)
+		c.Set("username",claims.Username)
+		c.Set("uid", claims.Uid)
+		c.Set("user_type", claims.UserType)
+		c.Next()
 	}
 }

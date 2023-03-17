@@ -3,9 +3,9 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"jwt-auth/helpers"
-	helper "jwt-auth/helpers"
-	"jwt-auth/models"
+	"github.com/yrs147/jwt-auth/helpers"
+	helper "github.com/yrs147/jwt-auth/helpers"
+	"github.com/yrs147/jwt-auth/models"
 	"log"
 	"net/http"
 	"strconv"
@@ -17,7 +17,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"golang.org/crypto/bcrypt"
 	"golang.org/x/crypto/bcrypt"
 )
 var userCollection *mongo.Collection = database.OpenCollection(database.Client,"user")

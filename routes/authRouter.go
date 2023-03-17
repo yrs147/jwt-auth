@@ -1,7 +1,7 @@
 package routes
 
 import(
-	controller "jwt-auth/controllers"
+	controller "github.com/yrs147/jwt-auth/controllers"
 	"github.com/gin-gonic/gin"
 )
 
