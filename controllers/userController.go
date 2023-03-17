@@ -120,7 +120,15 @@ func Login() gin.HandlerFunc{
 		if foundUser.Email == nil {
 			c.JSON(http.StatusinternalServerError, gin.H{"error":"user not found"})
 		}
-		helper.GenerateAllTokens(*&foundUser.Email , *foundUser.userType , *foundUser.uid )
+		token , refreshToken,_ := helper.GenerateAllTokens(*&foundUser.Email , *foundUser.userType , *foundUser.uid )
+		helper.UpdateAllTokens(token, refreshToken, foundUser.User_id)
+		userCollection.FindOne(ctx, bson.M{"user_id":foundUser.User_id}).Decode(&foundUser)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, foundUser)
 	}
 }
 
