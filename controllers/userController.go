@@ -3,8 +3,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/yrs147/jwt-auth/helpers"
-	helper "github.com/yrs147/jwt-auth/helpers"
 	"github.com/yrs147/jwt-auth/models"
 	"log"
 	"net/http"
@@ -14,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	helper "github.com/yrs147/jwt-auth/helpers"
+	"github.com/yrs147/jwt-auth/database"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -55,13 +54,13 @@ func Signup() gin.HandlerFunc{
 
 		validationErr := validate.Struct(user)
 		if validationErr != nil {
-			c.JSON(http.StatusBadrequest, gin.H{"error": validateErr.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
 		}
 
 		password := HashPassword(*user.Password)
 		user.Password = &password
 		
-		count , err := userColletion.CountDocuments(ctx ,bson.M{"email":user.Email})
+		count , err := userCollection.CountDocuments(ctx ,bson.M{"email":user.Email})
 		defer cancel()
 		if err != nil {
 			log.Panic(err)
@@ -78,7 +77,7 @@ func Signup() gin.HandlerFunc{
 		user.User_id = user.ID.Hex()
 		token , refreshToken, _ := helper.GenerateAllTokens(*user.Email, *user.Username, *user.User_type, *&user.User_id)
 		user.Token = &token
-		user.Refersh_token = &refershToken
+		user.Refresh_token = &refreshToken
 
 		resultInsertionNumber, insertErr := userCollection.InsertOne(ctx , user)
 		if insertErr != nil {
@@ -134,7 +133,7 @@ func Login() gin.HandlerFunc{
 
 func GetUsers() gin.HandlerFunc{
 	return func(c *gin.Context){
-		helper.CheckUserType(c, "ADMIN"); err != nil {
+		if err := helper.CheckUserType(c, "ADMIN"); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
