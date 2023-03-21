@@ -1,42 +1,44 @@
 package database
 
-import(
+import (
+	"context"
 	"fmt"
-	"time"
 	"log"
 	"os"
-	"context"
+	"time"
+
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func DBinstance() *mongoClient{
+func DBInstance() *mongo.Client {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	MongoDb := os.Getenv("MONGODB_DB")
+	MongoURI := os.Getenv("MONGODB_URL")
 
-	client, err := mongo.NewClient(options.Client().ApplyURI(MongoDb))
-	if err !=nil {
+	client, err := mongo.NewClient(options.Client().ApplyURI(MongoURI))
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	context.WithTimeout(context.Background(), 10*time.Second) 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 	err = client.Connect(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("Connected to Mongo")
 
-	return Client
+	return client
 }
 
-var Client *mongo.Client = DBinstance()
+var Client *mongo.Client = DBInstance()
 
-func OpenCollection(client *mongodb.Client, collectionName string) *mongoCollection{
-	var collection *mongo.Collection = client.Database("cluster0").Collection(collectName)
+func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collection{
+	var collection *mongo.Collection = client.Database("cluster0").Collection(collectionName)
 	return collection
 }
