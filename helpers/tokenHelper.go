@@ -34,13 +34,13 @@ func GenerateAllTokens(username string, userType string, uid string) (signedToke
 		Uid:       uid,
 		User_type: userType,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(),
+			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(1)).Unix(), // Token Expiring after one hour
 		},
 	}
 
 	refreshClaims := &SignedDetails{
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(168)).Unix(),
+			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(), //Refresh Token Expiring After 24 hours
 		},
 	}
 

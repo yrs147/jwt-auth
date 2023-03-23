@@ -36,7 +36,7 @@ func VerifyPassword(userPassword string , providedPassword string)(bool, string)
 	msg := ""
 
 	if err != nil {
-		msg = fmt.Sprintf("email or password incorrect")
+		msg = fmt.Sprintf("username or password incorrect")
 		check = false
 	}
 	return check , msg
@@ -131,6 +131,12 @@ func Login() gin.HandlerFunc{
 	}
 }
 
+func Logout() gin.HandlerFunc{
+	return func(c *gin.Context){
+		c.JSON(http.StatusOK, gin.H{"message": "logout successful"})
+	}
+}
+
 func GetUsers() gin.HandlerFunc{
 	return func(c *gin.Context){
 		if err := helper.CheckUserType(c, "ADMIN"); err != nil {
@@ -179,9 +185,6 @@ func GetUsers() gin.HandlerFunc{
 	}
 }
 
-
-
-
 func GetUser() gin.HandlerFunc{
 	return func(c *gin.Context){
 		userId := c.Param("user_id")
@@ -201,5 +204,11 @@ func GetUser() gin.HandlerFunc{
 		}
 		c.JSON(http.StatusOK, user)
 
+	}
+}
+
+func DeleteUser() gin.HandlerFunc {
+	return func(c *gin.Context){
+		
 	}
 }
