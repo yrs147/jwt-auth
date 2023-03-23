@@ -101,10 +101,10 @@ func Login() gin.HandlerFunc{
 			return
 		}
 
-		err := userCollection.FindOne(ctx, bson.M{"email":user.Email}).Decode(&foundUser)
+		err := userCollection.FindOne(ctx, bson.M{"username":user.Username}).Decode(&foundUser)
 		defer cancel()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error":"email or password incorrect"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error":"username or password incorrect"})
 			return
 		}
 
@@ -119,7 +119,7 @@ func Login() gin.HandlerFunc{
 		if foundUser.Email == nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"user not found"})
 		}
-		token , refreshToken,_ := helper.GenerateAllTokens(*foundUser.Email , *foundUser.User_type , *&foundUser.User_id )
+		token , refreshToken,_ := helper.GenerateAllTokens(*foundUser.Username , *foundUser.User_type , *&foundUser.User_id )
 		helper.UpdateAllTokens(token, refreshToken, foundUser.User_id)
 		userCollection.FindOne(ctx, bson.M{"user_id":foundUser.User_id}).Decode(&foundUser)
 

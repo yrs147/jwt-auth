@@ -3,10 +3,11 @@ package helper
 import (
 	"context"
 	"fmt"
-	"github.com/yrs147/jwt-auth/database"
 	"log"
 	"os"
 	"time"
+
+	"github.com/yrs147/jwt-auth/database"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,23 +17,23 @@ import (
 )
 
 type SignedDetails struct {
-	Email string
-	Uid string
+	Username     string
+	Uid       string
 	User_type string
 	jwt.StandardClaims
 }
 
-var userCollection *mongo.Collection = database.OpenCollection(database.Client,"user")
+var userCollection *mongo.Collection = database.OpenCollection(database.Client, "user")
 
 var SECRET_KEY = os.Getenv("SECRET_KEY")
 
-func GenerateAllTokens(email string , userType string, uid string) (signedToken string, signedRefreshToken string , err error){
+func GenerateAllTokens(username string, userType string, uid string) (signedToken string, signedRefreshToken string, err error) {
 
 	claims := &SignedDetails{
-		Email : email, 
-		Uid: uid , 
+		Username:  username,
+		Uid:       uid,
 		User_type: userType,
-		StandardClaims : jwt.StandardClaims{
+		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(),
 		},
 	}
@@ -43,48 +44,47 @@ func GenerateAllTokens(email string , userType string, uid string) (signedToken 
 		},
 	}
 
-	token ,err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(SECRET_KEY))
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(SECRET_KEY))
 	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString([]byte(SECRET_KEY))
 
 	if err != nil {
 		log.Panic(err)
-		return 
+		return
 	}
 
 	return token, refreshToken, err
 }
 
-func ValidateToken(signedToken string) (claims  *SignedDetails , msg string){
-	token , err :=jwt.ParseWithClaims(
-		signedToken , 
+func ValidateToken(signedToken string) (claims *SignedDetails, msg string) {
+	token, err := jwt.ParseWithClaims(
+		signedToken,
 		&SignedDetails{},
-		func (token *jwt.Token)(interface{}, error){
-			return []byte(SECRET_KEY), nil 
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_KEY), nil
 		},
-
 	)
 	if err != nil {
-		msg= err.Error()
+		msg = err.Error()
 		return
 	}
 
-	claims , ok := token.Claims.(*SignedDetails)
-	if !ok{
+	claims, ok := token.Claims.(*SignedDetails)
+	if !ok {
 		msg = fmt.Sprintf("The token is invalid")
 		msg = err.Error()
 		return
 	}
 
-	if claims.ExpiresAt < time.Now().Local().Unix(){
+	if claims.ExpiresAt < time.Now().Local().Unix() {
 		msg = fmt.Sprintf("token is expired")
 		msg = err.Error()
 		return
 	}
 
-	return claims , msg
+	return claims, msg
 }
 
-func UpdateAllTokens(signedToken string, signedRefreshToken string , userId string){
+func UpdateAllTokens(signedToken string, signedRefreshToken string, userId string) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 
 	var updateObj primitive.D
@@ -96,7 +96,7 @@ func UpdateAllTokens(signedToken string, signedRefreshToken string , userId stri
 	updateObj = append(updateObj, bson.E{"updated_at", Updated_at})
 
 	upsert := true
-	filter := bson.M{"user_id":userId}
+	filter := bson.M{"user_id": userId}
 	opt := options.UpdateOptions{
 		Upsert: &upsert,
 	}
@@ -105,17 +105,16 @@ func UpdateAllTokens(signedToken string, signedRefreshToken string , userId stri
 		ctx,
 		filter,
 		bson.D{
-			{"$set",updateObj},
+			{"$set", updateObj},
 		},
 		&opt,
-
 	)
 
 	defer cancel()
 
 	if err != nil {
 		log.Panic(err)
-		return 
+		return
 	}
 	return
 }
