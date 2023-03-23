@@ -209,6 +209,33 @@ func GetUser() gin.HandlerFunc{
 
 func DeleteUser() gin.HandlerFunc {
 	return func(c *gin.Context){
-		
+		if err := helper.CheckUserType(c,"ADMIN"); err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error":"ADMIN Access Required !!!"})
+			return
+		}
+
+		userId := c.Params("user_id")
+
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+
+		// User Check
+
+		count , err := userCollection.CountDocuments(ctx, bson.M{"user_id":userId})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error":"Error occured while checking if user exists"})
+			return
+		}
+		if count ==0 {
+			c.JSON(http.StatusNotFound, gin.H{"error":"User Not Found"})
+			return
+		}
+
+		//Delete User
+		_, err = userCollection.DeleteOne(ctx, bson.M{"user_id":userId})
+		if err != nil{
+			c.JSON(http.StatusInternalServerError, gin.H{"error":"Error occured while deleting user"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message":"User Deleted Successfully"})
 	}
 }
