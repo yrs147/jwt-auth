@@ -41,3 +41,30 @@ func TestGetUsers(t *testing.T) {
 	userItems := response["user_items"].([]interface{})
 	assert.Equal(t, 5, len(userItems))
 }
+
+func TestGetUser(t *testing.T) {
+	// Setup
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	// Set the user ID param
+	c.Params = append(c.Params, gin.Param{Key: "user_id", Value: "user123"})
+
+	// Call the function
+	GetUser()(c)
+
+	// Check the response status code
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status code %d but got %d", http.StatusOK, w.Code)
+	}
+
+	// Check the response body
+	var user models.User
+	if err := json.Unmarshal(w.Body.Bytes(), &user); err != nil {
+		t.Errorf("Failed to unmarshal response body: %v", err)
+	}
+	if user.UserID != "user123" {
+		t.Errorf("Expected user ID %q but got %q", "user123", user.UserID)
+	}
+}
+
